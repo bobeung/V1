@@ -39,6 +39,7 @@ function parseRide(text) {
   };
 }
 
+// Twilio SMS
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
@@ -55,7 +56,6 @@ async function sendSms(to, message) {
     console.error(`SMS failed: ${error.message}`);
     return false;
   }
-}
 }
 
 // Placeholder: Broadcast ride to drivers
