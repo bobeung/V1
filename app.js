@@ -39,11 +39,23 @@ function parseRide(text) {
   };
 }
 
-// Placeholder: Send SMS (replace with real SMS service later)
+const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+
 async function sendSms(to, message) {
-  console.log(`[SMS] To: ${to}, Message: ${message}`);
-  // In production, use Twilio or another SMS service here
-  return true;
+  try {
+    await client.messages.create({
+      to,
+      from: process.env.COMPANY_PHONE,
+      body: message
+    });
+    console.log(`[SMS] To: ${to}, Message: ${message}`);
+    return true;
+  } catch (error) {
+    console.error(`SMS failed: ${error.message}`);
+    return false;
+  }
+}
 }
 
 // Placeholder: Broadcast ride to drivers
