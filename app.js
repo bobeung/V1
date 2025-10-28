@@ -1,6 +1,7 @@
 // Load required libraries
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 require('dotenv').config();
 
 // Create Express app
@@ -9,20 +10,24 @@ const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'mysecret';
 const COMPANY_PHONE = process.env.COMPANY_PHONE || '+1-555-000-0000';
 
-/ ==================== CORS SETUP ====================
+// ==================== CORS + OPTIONS FOR /api ====================
+const allowedOrigins = ['https://www.militaryrides.org', 'https://militaryrides.org'];
+
 app.use(cors({
-  origin: ['https://www.militaryrides.org', 'https://militaryrides.org'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-webhook-token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-webhook-token'],
+  credentials: true
 }));
 
-// Handle preflight (OPTIONS) for ALL routes
-app.options('*', cors());
-// ===================================================
-
-// In-memory storage (like a simple database for demo)
-const rides = new Map(); // Stores ride requests: rideId -> { id, pickup, drop, riderPhone, status, driver }
-const drivers = new Map(); // Stores drivers: driverId -> { id, name, phone, status }
+// **THIS LINE FIXES THE 404 PREFLIGHT**
+app.options('/api/*', (req, res) => {
+  res.sendStatus(200);
+});
+// ==============================================================
 
 // Middleware to parse incoming data
 app.use(bodyParser.json());
