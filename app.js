@@ -208,6 +208,74 @@ app.get('/', (req, res) => {
 });
 
 // Start server
+
+// ==================== AUTH ROUTES (ADD THESE) ====================
+
+// In-memory users (replace with DB later)
+const users = new Map(); // email → { email, password, token }
+
+// Simple JWT-like token (for demo)
+function generateToken() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+// POST /api/auth/signup
+app.post('/api/auth/signup', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+  if (users.has(email)) {
+    return res.status(400).json({ error: 'User already exists' });
+  }
+  const token = generateToken();
+  users.set(email, { email, password, token });
+  res.json({ token, message: 'Account created' });
+});
+
+// POST /api/auth/login
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = users.get(email);
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
+  res.json({ token: user.token });
+});
+
+// GET /api/rides/my - Get user's rides (demo)
+app.get('/api/rides/my', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  let userRides = [];
+  for (const ride of rides.values()) {
+    if (ride.riderPhone.includes(token)) { // Simplified
+      userRides.push(ride);
+    }
+  }
+  res.json(userRides);
+});
+
+// POST /api/rides - Create ride (demo)
+app.post('/api/rides', (req, res) => {
+  const { from, to, date } = req.body;
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!from || !to) {
+    return res.status(400).json({ error: 'From and To required' });
+  }
+  const rideId = generateId();
+  const ride = {
+    id: rideId,
+    from,
+    to,
+    date: date || new Date().toISOString(),
+    riderPhone: token || 'unknown',
+    status: 'OPEN'
+  };
+  rides.set(rideId, ride);
+  res.status(201).json({ message: 'Ride posted', ride });
+});
+// ================================================================
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
