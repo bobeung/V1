@@ -9,6 +9,17 @@ const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'mysecret';
 const COMPANY_PHONE = process.env.COMPANY_PHONE || '+1-555-000-0000';
 
+/ ==================== CORS SETUP ====================
+app.use(cors({
+  origin: ['https://www.militaryrides.org', 'https://militaryrides.org'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-webhook-token']
+}));
+
+// Handle preflight (OPTIONS) for ALL routes
+app.options('*', cors());
+// ===================================================
+
 // In-memory storage (like a simple database for demo)
 const rides = new Map(); // Stores ride requests: rideId -> { id, pickup, drop, riderPhone, status, driver }
 const drivers = new Map(); // Stores drivers: driverId -> { id, name, phone, status }
