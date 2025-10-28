@@ -276,6 +276,25 @@ app.post('/api/rides', (req, res) => {
 });
 // ================================================================
 
+// GET my rides
+app.get('/api/rides/my', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const myRides = Array.from(rides.values()).filter(r => r.riderPhone === token);
+  res.json(myRides);
+});
+
+// POST new ride
+app.post('/api/rides', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const { from, to, date } = req.body;
+  if (!from || !to) return res.status(400).json({ error: 'From and To required' });
+
+  const rideId = generateId();
+  const ride = { id: rideId, from, to, date: date || new Date().toISOString(), riderPhone: token, status: 'OPEN' };
+  rides.set(rideId, ride);
+  res.status(201).json(ride);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
